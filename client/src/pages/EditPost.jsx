@@ -3,27 +3,38 @@ import {
   useActionData,
   useLoaderData,
   useNavigation,
-} from 'react-router-dom'
-import { createPost } from '../api/posts'
+} from 'react-router'
+import { getPost, updatePost } from '../api/posts'
 import { getUsers } from '../api/users'
 import { PostForm, postFormValidator } from '../components/PostForm'
 
-function NewPost() {
-  const users = useLoaderData()
+function EditPost() {
+  const { users, post } = useLoaderData()
   const { state } = useNavigation()
   const errors = useActionData()
   const isSubmitting = state === 'submitting'
 
   return (
     <>
-      <h1 className='page-title'>New Post</h1>
-      <PostForm users={users} isSubmitting={isSubmitting} errors={errors} />
+      <h1 className='page-title'>Edit Post</h1>
+      <PostForm
+        users={users}
+        isSubmitting={isSubmitting}
+        errors={errors}
+        defaultValues={post}
+      />
     </>
   )
 }
 
-async function action({ request }) {
-  console.log(request)
+async function loader({ request: { signal }, params: { postId } }) {
+  const post = getPost(postId, { signal })
+  const users = getUsers({ signal })
+
+  return { post: await post, users: await users }
+}
+
+async function action({ request, params: { postId } }) {
   const formData = await request.formData()
   const title = formData.get('title')
   const body = formData.get('body')
@@ -35,7 +46,8 @@ async function action({ request }) {
     return errors
   }
 
-  const post = await createPost(
+  const post = await updatePost(
+    postId,
     { title, body, userId },
     { signal: request.signal }
   )
@@ -43,12 +55,8 @@ async function action({ request }) {
   return redirect(`/posts/${post.id}`)
 }
 
-function loader({ request: { signal } }) {
-  return getUsers({ signal })
-}
-
-export const newPostRoute = {
+export const editPostRoute = {
   loader,
   action,
-  element: <NewPost />,
+  element: <EditPost />,
 }
