@@ -1,7 +1,6 @@
-import { useLoaderData } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import { Form, Link, useLoaderData } from 'react-router-dom'
 import { getPosts } from '../api/posts'
-import { PostCard } from '../components/PostCard'
 import { getUsers } from '../api/users'
 import { FormGroup } from '../components/FormGroup'
 import { PostCard } from '../components/PostCard'
@@ -12,16 +11,15 @@ function PostList() {
     users,
     searchParams: { query, userId },
   } = useLoaderData()
-
   const queryRef = useRef()
   const userIdRef = useRef()
 
-  usefffect(() => {
+  useEffect(() => {
     queryRef.current.value = query || ''
   }, [query])
 
-  usefffect(() => {
-    userId.current.value = query || ''
+  useEffect(() => {
+    userIdRef.current.value = userId || ''
   }, [userId])
 
   return (
@@ -34,28 +32,29 @@ function PostList() {
           </Link>
         </div>
       </h1>
-      <div className='card-grid'>
-        <Form className='form mb-4'>
-          <div className='form-row'>
-            <FormGroup>
-              <label htmlFor='query'>Query</label>
-              <input type='search' name='query' ref={queryRef} />
-            </FormGroup>
-            <FormGroup>
-              <label htmlFor='userId'>Author</label>
-              <select type='search' name='userId' id='userId' ref={userIdRef}>
-                <option value=''>Any</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
-            </FormGroup>
-            <button className='btn'>Filter</button>
-          </div>
-        </Form>
 
+      <Form className='form mb-4'>
+        <div className='form-row'>
+          <FormGroup>
+            <label htmlFor='query'>Query</label>
+            <input type='search' name='query' ref={queryRef} />
+          </FormGroup>
+          <FormGroup>
+            <label htmlFor='userId'>Author</label>
+            <select type='search' name='userId' id='userId' ref={userIdRef}>
+              <option value=''>Any</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+          </FormGroup>
+          <button className='btn'>Filter</button>
+        </div>
+      </Form>
+
+      <div className='card-grid'>
         {posts.map((post) => (
           <PostCard key={post.id} {...post} />
         ))}
