@@ -1,7 +1,7 @@
 import { baseApi } from './base'
 
 export function getPosts(options) {
- 
+  console.log(options);
   return baseApi.get('posts', options).then((res) => res.data)
 }
 

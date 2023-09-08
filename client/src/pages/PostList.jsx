@@ -1,14 +1,61 @@
 import { useLoaderData } from 'react-router-dom'
+import { Form, Link, useLoaderData } from 'react-router-dom'
 import { getPosts } from '../api/posts'
+import { PostCard } from '../components/PostCard'
+import { getUsers } from '../api/users'
+import { FormGroup } from '../components/FormGroup'
 import { PostCard } from '../components/PostCard'
 
 function PostList() {
-  const posts = useLoaderData()
+  const {
+    posts,
+    users,
+    searchParams: { query, userId },
+  } = useLoaderData()
+
+  const queryRef = useRef()
+  const userIdRef = useRef()
+
+  usefffect(() => {
+    queryRef.current.value = query || ''
+  }, [query])
+
+  usefffect(() => {
+    userId.current.value = query || ''
+  }, [userId])
 
   return (
     <>
-      <h1 className='page-title'>Posts</h1>
+      <h1 className='page-title'>
+        Posts
+        <div className='title-btns'>
+          <Link className='btn btn-outline' to='new'>
+            New
+          </Link>
+        </div>
+      </h1>
       <div className='card-grid'>
+        <Form className='form mb-4'>
+          <div className='form-row'>
+            <FormGroup>
+              <label htmlFor='query'>Query</label>
+              <input type='search' name='query' ref={queryRef} />
+            </FormGroup>
+            <FormGroup>
+              <label htmlFor='userId'>Author</label>
+              <select type='search' name='userId' id='userId' ref={userIdRef}>
+                <option value=''>Any</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </FormGroup>
+            <button className='btn'>Filter</button>
+          </div>
+        </Form>
+
         {posts.map((post) => (
           <PostCard key={post.id} {...post} />
         ))}
@@ -17,9 +64,22 @@ function PostList() {
   )
 }
 
-function loader({ request: { signal } }) {
-  // console.log({signal})
-  return getPosts({ signal })
+async function loader({ request: { signal, url } }) {
+  const searchParams = new URL(url).searchParams
+  console.log(new URL(url).searchParams.get('John'))
+  const query = searchParams.get('query')
+  const userId = searchParams.get('userId')
+  const filterParams = { q: query }
+  if (userId !== '') filterParams.userId = userId
+
+  const posts = getPosts({ signal, params: filterParams })
+  const users = getUsers({ signal })
+
+  return {
+    posts: await posts,
+    users: await users,
+    searchParams: { query, userId },
+  }
 }
 
 export const postListRoute = {
